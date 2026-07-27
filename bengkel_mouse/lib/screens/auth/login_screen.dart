@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.textColor,
+                              color: Theme.of(context).colorScheme.onSurface,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textColor,
+                          color: Theme.of(context).colorScheme.onSurface,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Pantau servis mouse kamu kapan saja.',
                         style: GoogleFonts.outfit(
                           fontSize: 15,
-                          color: AppTheme.textMuted,
+                          color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                         ),
                       ),
                       const SizedBox(height: 36),
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
-                        style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                        style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                         decoration: InputDecoration(
                           labelText: 'Alamat Email',
                           hintText: 'nama@email.com',
@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passCtrl,
                         obscureText: !_showPass,
-                        style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                        style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                         decoration: InputDecoration(
                           labelText: 'Password',
                           hintText: '••••••••',
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icon(
                               _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                               size: 20,
-                              color: AppTheme.textMuted,
+                              color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                             ),
                           ),
                         ),
@@ -203,12 +203,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Divider
                       Row(children: [
-                        Expanded(child: Divider(color: AppTheme.borderColor)),
+                        Expanded(child: Divider(color: Theme.of(context).dividerTheme.color!)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('atau', style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 13)),
+                          child: Text('atau', style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 13)),
                         ),
-                        Expanded(child: Divider(color: AppTheme.borderColor)),
+                        Expanded(child: Divider(color: Theme.of(context).dividerTheme.color!)),
                       ]),
                       const SizedBox(height: 28),
 
@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Text(
                             'Belum punya akun? ',
-                            style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 14),
+                            style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 14),
                           ),
                           GestureDetector(
                             onTap: () => context.push('/register'),

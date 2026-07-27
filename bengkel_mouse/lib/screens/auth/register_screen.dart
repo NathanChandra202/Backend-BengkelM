@@ -45,15 +45,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         appBar: AppBar(
           title: Text(
             'Buat Akun Baru',
-            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textColor),
+            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => context.pop(),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.borderColor),
+            child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           ),
         ),
         body: SingleChildScrollView(
@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                   letterSpacing: -0.8,
                   height: 1.2,
                 ),
@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 8),
               Text(
                 'Isi data diri kamu untuk mulai booking servis.',
-                style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 14),
+                style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 14),
               ),
               const SizedBox(height: 36),
 
@@ -83,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _nameCtrl,
                 textCapitalization: TextCapitalization.words,
-                style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                 decoration: const InputDecoration(
                   hintText: 'Nama kamu',
                   prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                 decoration: const InputDecoration(
                   hintText: 'nama@email.com',
                   prefixIcon: Icon(Icons.email_outlined, size: 20),
@@ -111,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _waCtrl,
                 keyboardType: TextInputType.phone,
-                style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                 decoration: const InputDecoration(
                   hintText: '08xxxxxxxxxxxx',
                   prefixIcon: Icon(Icons.phone_android_outlined, size: 20),
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _passCtrl,
                 obscureText: !_showPass,
-                style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+                style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'Min. 8 karakter',
                   prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
@@ -135,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     icon: Icon(
                       _showPass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                       size: 20,
-                      color: AppTheme.textMuted,
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                     ),
                   ),
                 ),
@@ -159,6 +159,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(text, style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 13, fontWeight: FontWeight.w500));
+    return Text(text, style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w500));
   }
 }

@@ -32,9 +32,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Pesanan Saya', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textColor)),
+          title: Text('Pesanan Saya', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
           bottom: TabBar(
@@ -42,10 +42,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             indicatorColor: AppTheme.primaryColor,
             indicatorWeight: 2,
             labelColor: AppTheme.primaryColor,
-            unselectedLabelColor: AppTheme.textMuted,
+            unselectedLabelColor: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
             labelStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600),
             unselectedLabelStyle: GoogleFonts.outfit(fontSize: 13),
-            dividerColor: AppTheme.borderColor,
+            dividerColor: Theme.of(context).dividerTheme.color!,
             tabs: const [
               Tab(text: 'Aktif'),
               Tab(text: 'Selesai'),
@@ -71,9 +71,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inbox_outlined, size: 56, color: AppTheme.textMuted.withAlpha(100)),
+            Icon(Icons.inbox_outlined, size: 56, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight).withAlpha(100)),
             const SizedBox(height: 12),
-            Text('Belum ada pesanan', style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 15)),
+            Text('Belum ada pesanan', style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 15)),
           ],
         ),
       );
@@ -92,9 +92,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.borderColor),
+          border: Border.all(color: Theme.of(context).dividerTheme.color!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +106,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textMuted,
+                    color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -134,11 +134,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     children: [
                       Text(
                         o.mouseName,
-                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textColor),
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       Text(
                         o.issue,
-                        style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
                       ),
                     ],
                   ),
@@ -146,13 +146,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               ],
             ),
             const SizedBox(height: 14),
-            Container(height: 1, color: AppTheme.borderColor),
+            Container(height: 1, color: Theme.of(context).dividerTheme.color!),
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.textMuted),
+                Icon(Icons.calendar_today_outlined, size: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
                 const SizedBox(width: 5),
-                Text(o.date, style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textMuted)),
+                Text(o.date, style: GoogleFonts.outfit(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
                 const Spacer(),
                 Text(
                   'Lihat Detail →',

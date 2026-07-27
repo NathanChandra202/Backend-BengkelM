@@ -38,7 +38,7 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
   void _showSuccessSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -60,13 +60,13 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
             const SizedBox(height: 20),
             Text(
               'Bukti Transfer Terkirim!',
-              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 8),
             Text(
               'Admin kami akan memverifikasi pembayaran kamu.\nNotifikasi akan dikirim setelah disetujui.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(fontSize: 14, color: AppTheme.textMuted, height: 1.6),
+              style: GoogleFonts.outfit(fontSize: 14, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), height: 1.6),
             ),
             const SizedBox(height: 28),
             SizedBox(
@@ -94,15 +94,15 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
         appBar: AppBar(
           title: Text(
             'Instruksi Pembayaran',
-            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textColor),
+            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.borderColor),
+            child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           ),
         ),
         body: SingleChildScrollView(
@@ -141,15 +141,15 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
               // Rincian
               Text(
                 'Rincian Tagihan',
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderColor),
+                  border: Border.all(color: Theme.of(context).dividerTheme.color!),
                 ),
                 child: Column(
                   children: [
@@ -157,18 +157,18 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
                     const SizedBox(height: 10),
                     _billRow('Part: Switch Kailh GM 8.0 (x2)', 'Rp 70.000'),
                     const SizedBox(height: 12),
-                    Container(height: 1, color: AppTheme.borderColor),
+                    Container(height: 1, color: Theme.of(context).dividerTheme.color!),
                     const SizedBox(height: 12),
                     _billRow('Subtotal', 'Rp 150.000'),
                     const SizedBox(height: 6),
                     _billRow('Kode Unik', '+Rp $_uniqueCode', highlight: true),
                     const SizedBox(height: 12),
-                    Container(height: 1, color: AppTheme.borderColor),
+                    Container(height: 1, color: Theme.of(context).dividerTheme.color!),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('TOTAL BAYAR', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textColor)),
+                        Text('TOTAL BAYAR', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
                         Text(
                           'Rp ${_formatRp(_totalAmount)}',
                           style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryColor),
@@ -183,7 +183,7 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
               // Bank accounts
               Text(
                 'Rekening Tujuan',
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: 12),
               ..._banks.map((b) => _buildBankCard(b)),
@@ -193,12 +193,12 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
               // Upload proof
               Text(
                 'Upload Bukti Transfer',
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: 8),
               Text(
                 'Upload foto struk transfer sebagai bukti pembayaran.',
-                style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted),
+                style: GoogleFonts.outfit(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
               ),
               const SizedBox(height: 12),
               GestureDetector(
@@ -212,10 +212,10 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
                   decoration: BoxDecoration(
                     color: _proofUploaded
                         ? AppTheme.statusDone.withAlpha(20)
-                        : AppTheme.surfaceColor,
+                        : Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _proofUploaded ? AppTheme.statusDone.withAlpha(120) : AppTheme.borderColor,
+                      color: _proofUploaded ? AppTheme.statusDone.withAlpha(120) : Theme.of(context).dividerTheme.color!,
                       width: _proofUploaded ? 1.5 : 1,
                     ),
                   ),
@@ -225,14 +225,14 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
                       Icon(
                         _proofUploaded ? Icons.check_circle_outline_rounded : Icons.upload_file_outlined,
                         size: 36,
-                        color: _proofUploaded ? AppTheme.statusDone : AppTheme.textMuted,
+                        color: _proofUploaded ? AppTheme.statusDone : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         _proofUploaded ? 'Foto berhasil dipilih' : 'Tap untuk pilih foto struk',
                         style: GoogleFonts.outfit(
                           fontSize: 13,
-                          color: _proofUploaded ? AppTheme.statusDone : AppTheme.textMuted,
+                          color: _proofUploaded ? AppTheme.statusDone : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                           fontWeight: _proofUploaded ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),
@@ -246,16 +246,16 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
         bottomNavigationBar: Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
-            border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: Border(top: BorderSide(color: Theme.of(context).dividerTheme.color!)),
           ),
           child: SizedBox(
             height: 50,
             child: ElevatedButton(
               onPressed: _proofUploaded && !_submitting ? _submit : null,
               style: ElevatedButton.styleFrom(
-                disabledBackgroundColor: AppTheme.surfaceHighColor,
-                disabledForegroundColor: AppTheme.textMuted,
+                disabledBackgroundColor: (Theme.of(context).brightness == Brightness.dark ? AppTheme.surfaceHighColor : AppTheme.surfaceHighColorLight),
+                disabledForegroundColor: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
               ),
               child: _submitting
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -329,9 +329,9 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerTheme.color!),
       ),
       child: Row(
         children: [
@@ -339,13 +339,13 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceHighColor,
+              color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.surfaceHighColor : AppTheme.surfaceHighColorLight),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: Text(
                 bank.name,
-                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
           ),
@@ -354,8 +354,8 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(bank.accountNumber, style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textColor, letterSpacing: 1.2)),
-                Text('a.n. ${bank.accountName}', style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textMuted)),
+                Text(bank.accountNumber, style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 1.2)),
+                Text('a.n. ${bank.accountName}', style: GoogleFonts.outfit(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
               ],
             ),
           ),
@@ -388,13 +388,13 @@ class _PaymentInstructionScreenState extends State<PaymentInstructionScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
         Text(
           value,
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: highlight ? FontWeight.w600 : FontWeight.w500,
-            color: highlight ? AppTheme.primaryColor : AppTheme.textColor,
+            color: highlight ? AppTheme.primaryColor : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],

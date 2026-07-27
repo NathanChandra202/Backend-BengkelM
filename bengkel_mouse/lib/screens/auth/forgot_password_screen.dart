@@ -35,12 +35,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => context.pop(),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.borderColor),
+            child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           ),
         ),
         body: Padding(
@@ -67,18 +67,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       const SizedBox(height: 24),
       Text(
         'Reset Password',
-        style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.textColor, letterSpacing: -0.5),
+        style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface, letterSpacing: -0.5),
       ),
       const SizedBox(height: 8),
       Text(
         'Masukkan email kamu dan kami akan kirimkan link reset password.',
-        style: GoogleFonts.outfit(fontSize: 14, color: AppTheme.textMuted, height: 1.6),
+        style: GoogleFonts.outfit(fontSize: 14, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), height: 1.6),
       ),
       const SizedBox(height: 36),
       TextFormField(
         controller: _emailCtrl,
         keyboardType: TextInputType.emailAddress,
-        style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+        style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
         decoration: const InputDecoration(
           labelText: 'Alamat Email',
           hintText: 'nama@email.com',
@@ -112,9 +112,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: const Icon(Icons.check_rounded, color: Color(0xFF22C55E), size: 36),
       ),
       const SizedBox(height: 24),
-      Text('Email Terkirim!', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700, color: AppTheme.textColor)),
+      Text('Email Terkirim!', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
       const SizedBox(height: 8),
-      Text('Cek inbox kamu untuk link reset password.', style: GoogleFonts.outfit(color: AppTheme.textMuted), textAlign: TextAlign.center),
+      Text('Cek inbox kamu untuk link reset password.', style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)), textAlign: TextAlign.center),
     ],
   );
 }

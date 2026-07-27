@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../theme.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -15,7 +17,9 @@ class _BookingScreenState extends State<BookingScreen> {
   final _brandCtrl   = TextEditingController();
   final _modelCtrl   = TextEditingController();
   final _detailsCtrl = TextEditingController();
-  String? _selectedCategory;
+  final List<String> _selectedCategories = [];
+  XFile? _pickedMedia;
+  final ImagePicker _picker = ImagePicker();
 
   final _categories = const [
     'Double Clicking / Klik Ganda',
@@ -50,15 +54,15 @@ class _BookingScreenState extends State<BookingScreen> {
         appBar: AppBar(
           title: Text(
             'Booking Servis',
-            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textColor),
+            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.borderColor),
+            child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           ),
         ),
         body: Column(
@@ -89,8 +93,8 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
-        border: const Border(bottom: BorderSide(color: AppTheme.borderColor)),
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerTheme.color!)),
       ),
       child: Row(
         children: List.generate(steps.length, (i) {
@@ -107,10 +111,10 @@ class _BookingScreenState extends State<BookingScreen> {
                         ? AppTheme.primaryColor
                         : active
                             ? AppTheme.primaryColor.withAlpha(30)
-                            : AppTheme.surfaceColor,
+                            : Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: done || active ? AppTheme.primaryColor : AppTheme.borderColor,
+                      color: done || active ? AppTheme.primaryColor : Theme.of(context).dividerTheme.color!,
                       width: 1.5,
                     ),
                   ),
@@ -122,7 +126,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: active ? AppTheme.primaryColor : AppTheme.textMuted,
+                              color: active ? AppTheme.primaryColor : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                             ),
                           ),
                   ),
@@ -137,7 +141,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                          color: active ? AppTheme.textColor : AppTheme.textMuted,
+                          color: active ? Theme.of(context).colorScheme.onSurface : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                         ),
                       ),
                     ],
@@ -147,7 +151,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   Expanded(
                     child: Container(
                       height: 1,
-                      color: i < _step ? AppTheme.primaryColor : AppTheme.borderColor,
+                      color: i < _step ? AppTheme.primaryColor : Theme.of(context).dividerTheme.color!,
                     ),
                   ),
               ],
@@ -169,7 +173,7 @@ class _BookingScreenState extends State<BookingScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _brandCtrl,
-          style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+          style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
           decoration: const InputDecoration(
             hintText: 'Logitech, Razer, Zowie, dsb.',
             prefixIcon: Icon(Icons.mouse_outlined, size: 20),
@@ -181,7 +185,7 @@ class _BookingScreenState extends State<BookingScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _modelCtrl,
-          style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+          style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
           decoration: const InputDecoration(
             hintText: 'G Pro X Superlight, Viper Mini, EC2-A, dsb.',
             prefixIcon: Icon(Icons.settings_input_composite_outlined, size: 20),
@@ -189,19 +193,55 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        _label('Kategori Masalah'),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          decoration: const InputDecoration(
-            hintText: 'Pilih kategori...',
-            prefixIcon: Icon(Icons.category_outlined, size: 20),
-            prefixIconConstraints: BoxConstraints(minWidth: 50),
-          ),
-          dropdownColor: AppTheme.surfaceHighColor,
-          style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 14),
-          items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-          onChanged: (v) => setState(() => _selectedCategory = v),
+        _label('Kategori Masalah (Bisa pilih lebih dari satu)'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 10,
+          children: _categories.map((c) {
+            final isSelected = _selectedCategories.contains(c);
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedCategories.remove(c);
+                  } else {
+                    _selectedCategories.add(c);
+                  }
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primaryColor.withAlpha(20) : Theme.of(context).colorScheme.surface,
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primaryColor : Theme.of(context).dividerTheme.color!,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                      size: 18,
+                      color: isSelected ? AppTheme.primaryColor : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      c,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? AppTheme.primaryColor : Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
         const SizedBox(height: 32),
       ],
@@ -220,37 +260,120 @@ class _BookingScreenState extends State<BookingScreen> {
         TextFormField(
           controller: _detailsCtrl,
           maxLines: 5,
-          style: GoogleFonts.outfit(color: AppTheme.textColor, fontSize: 15),
+          style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
           decoration: const InputDecoration(
             hintText: 'Contoh: klik kiri sering double click saat diklik sekali, sudah terjadi sejak 2 minggu lalu...',
           ),
         ),
         const SizedBox(height: 20),
-        _label('Foto Kondisi Mouse (Opsional)'),
+        _label('Foto/Video Kondisi Mouse (Opsional)'),
         const SizedBox(height: 10),
         GestureDetector(
-          onTap: () {
-            // TODO: image picker
+          onTap: () async {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (ctx) => SafeArea(
+                child: Wrap(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.photo_library_outlined),
+                      title: Text('Pilih dari Galeri (Foto)', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final xfile = await _picker.pickImage(source: ImageSource.gallery);
+                        if (xfile != null) setState(() => _pickedMedia = xfile);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.video_library_outlined),
+                      title: Text('Pilih dari Galeri (Video)', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final xfile = await _picker.pickVideo(source: ImageSource.gallery);
+                        if (xfile != null) setState(() => _pickedMedia = xfile);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.camera_alt_outlined),
+                      title: Text('Ambil Foto/Video', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final xfile = await _picker.pickImage(source: ImageSource.camera); // Default camera to image for simplicity
+                        if (xfile != null) setState(() => _pickedMedia = xfile);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
           child: Container(
-            height: 130,
             width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 130),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderColor, style: BorderStyle.solid),
+              border: Border.all(color: Theme.of(context).dividerTheme.color!, style: BorderStyle.solid),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_photo_alternate_outlined, size: 34, color: AppTheme.textMuted),
-                const SizedBox(height: 8),
-                Text(
-                  'Tambah foto dari kamera atau galeri',
-                  style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 13),
-                ),
-              ],
-            ),
+            child: _pickedMedia == null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined, size: 34, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tambah foto atau video (MP4/JPG/PNG)',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 13),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            _pickedMedia!.path.endsWith('.mp4') ? Icons.video_file : Icons.image,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _pickedMedia!.name,
+                              style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
+                            onPressed: () => setState(() => _pickedMedia = null),
+                          ),
+                        ],
+                      ),
+                      if (!_pickedMedia!.path.endsWith('.mp4'))
+                         Padding(
+                           padding: const EdgeInsets.only(top: 8),
+                           child: ClipRRect(
+                             borderRadius: BorderRadius.circular(8),
+                             child: Image.file(
+                               File(_pickedMedia!.path),
+                               height: 100,
+                               width: double.infinity,
+                               fit: BoxFit.cover,
+                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                             ),
+                           ),
+                         ),
+                    ],
+                  ),
           ),
         ),
         const SizedBox(height: 32),
@@ -268,7 +391,7 @@ class _BookingScreenState extends State<BookingScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppTheme.primaryColor.withAlpha(60)),
           ),
@@ -279,13 +402,13 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   const Icon(Icons.location_on_outlined, color: AppTheme.primaryColor, size: 20),
                   const SizedBox(width: 8),
-                  Text('Alamat Bengkel', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppTheme.textColor, fontSize: 15)),
+                  Text('Alamat Bengkel', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface, fontSize: 15)),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 'Jl. H. Hasan No.26, RT.3/RW.10, Baru,\nKec. Pasar Rebo, Jakarta Timur 13780',
-                style: GoogleFonts.outfit(color: AppTheme.textMuted, fontSize: 14, height: 1.7),
+                style: GoogleFonts.outfit(color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), fontSize: 14, height: 1.7),
               ),
             ],
           ),
@@ -312,20 +435,20 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerTheme.color!),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.textMuted, size: 22),
+          Icon(icon, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight), size: 22),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textColor)),
-                Text(sub, style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textMuted)),
+                Text(title, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
+                Text(sub, style: GoogleFonts.outfit(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
               ],
             ),
           ),
@@ -338,8 +461,8 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor,
-        border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerTheme.color!)),
       ),
       child: Row(
         children: [
@@ -373,12 +496,12 @@ class _BookingScreenState extends State<BookingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.textColor, letterSpacing: -0.5)),
+        Text(title, style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface, letterSpacing: -0.5)),
         const SizedBox(height: 4),
-        Text(sub, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted)),
+        Text(sub, style: GoogleFonts.outfit(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
       ],
     );
   }
 
-  Widget _label(String t) => Text(t, style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.textColor));
+  Widget _label(String t) => Text(t, style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface));
 }

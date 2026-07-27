@@ -29,21 +29,21 @@ class TrackingDetailScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(
             bookingId,
-            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textColor, letterSpacing: 0.3),
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface, letterSpacing: 0.3),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textColor),
+            icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.share_outlined, color: AppTheme.textMuted),
+              icon: Icon(Icons.share_outlined, color: Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
               onPressed: () {},
             ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppTheme.borderColor),
+            child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           ),
         ),
         body: SingleChildScrollView(
@@ -59,10 +59,10 @@ class TrackingDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
                 child: Text(
                   'Riwayat Status',
-                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
-              _buildTimeline(steps, currentStep),
+              _buildTimeline(context, steps, currentStep),
               const SizedBox(height: 80),
             ],
           ),
@@ -76,9 +76,9 @@ class TrackingDetailScreen extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerTheme.color!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,11 +102,11 @@ class TrackingDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Logitech G Pro X Superlight',
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textColor),
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
                     ),
                     Text(
                       'Double Click / Klik Ganda',
-                      style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
                     ),
                   ],
                 ),
@@ -114,23 +114,23 @@ class TrackingDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Container(height: 1, color: AppTheme.borderColor),
+          Container(height: 1, color: Theme.of(context).dividerTheme.color!),
           const SizedBox(height: 14),
-          _buildInfoRow('Status Saat Ini', 'Menunggu Pembayaran', AppTheme.statusPayment),
+          _buildInfoRow(context, 'Status Saat Ini', 'Menunggu Pembayaran', AppTheme.statusPayment),
           const SizedBox(height: 8),
-          _buildInfoRow('Tanggal Booking', '21 Jul 2026', AppTheme.textMuted),
+          _buildInfoRow(context, 'Tanggal Booking', '21 Jul 2026', (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
           const SizedBox(height: 8),
-          _buildInfoRow('Estimasi Selesai', '1–3 Hari Kerja', AppTheme.textMuted),
+          _buildInfoRow(context, 'Estimasi Selesai', '1–3 Hari Kerja', (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, Color valueColor) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, Color valueColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight))),
         Text(
           value,
           style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: valueColor),
@@ -195,7 +195,7 @@ class TrackingDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeline(List<_TrackStep> steps, int currentStep) {
+  Widget _buildTimeline(BuildContext context, List<_TrackStep> steps, int currentStep) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -204,7 +204,7 @@ class TrackingDetailScreen extends StatelessWidget {
           final isCurrent = i == currentStep;
           final isPending = i > currentStep;
           final step      = steps[i];
-          final color     = isDone || isCurrent ? step.color : AppTheme.textMuted.withAlpha(80);
+          final color     = isDone || isCurrent ? step.color : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight).withAlpha(80);
 
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,14 +216,14 @@ class TrackingDetailScreen extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isPending ? AppTheme.surfaceColor : color.withAlpha(30),
+                      color: isPending ? Theme.of(context).colorScheme.surface : color.withAlpha(30),
                       shape: BoxShape.circle,
-                      border: Border.all(color: isPending ? AppTheme.borderColor : color, width: 1.5),
+                      border: Border.all(color: isPending ? Theme.of(context).dividerTheme.color! : color, width: 1.5),
                     ),
                     child: Center(
                       child: isDone
                           ? Icon(Icons.check_rounded, size: 18, color: color)
-                          : Icon(step.icon, size: 18, color: isPending ? AppTheme.textMuted.withAlpha(100) : color),
+                          : Icon(step.icon, size: 18, color: isPending ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight).withAlpha(100) : color),
                     ),
                   ),
                   if (i < steps.length - 1)
@@ -236,7 +236,7 @@ class TrackingDetailScreen extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: isDone
                               ? [color.withAlpha(120), color.withAlpha(40)]
-                              : [AppTheme.borderColor, AppTheme.borderColor],
+                              : [Theme.of(context).dividerTheme.color!, Theme.of(context).dividerTheme.color!],
                         ),
                       ),
                     ),
@@ -258,14 +258,14 @@ class TrackingDetailScreen extends StatelessWidget {
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-                                color: isPending ? AppTheme.textMuted.withAlpha(120) : AppTheme.textColor,
+                                color: isPending ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight).withAlpha(120) : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
                           if (step.time != null)
                             Text(
                               step.time!,
-                              style: GoogleFonts.outfit(fontSize: 11, color: AppTheme.textMuted),
+                              style: GoogleFonts.outfit(fontSize: 11, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
                             ),
                         ],
                       ),
@@ -274,7 +274,7 @@ class TrackingDetailScreen extends StatelessWidget {
                         step.note,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
-                          color: isPending ? AppTheme.textMuted.withAlpha(100) : AppTheme.textMuted,
+                          color: isPending ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight).withAlpha(100) : (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
                           height: 1.5,
                         ),
                       ),

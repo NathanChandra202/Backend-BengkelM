@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
+import '../../providers/theme_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,9 +18,9 @@ class HomeScreen extends StatelessWidget {
           slivers: [
             _buildAppBar(context),
             SliverToBoxAdapter(child: _buildHero(context)),
-            SliverToBoxAdapter(child: _buildStats()),
+            SliverToBoxAdapter(child: _buildStats(context)),
             SliverToBoxAdapter(child: _buildServicesTitle(context)),
-            _buildServicesList(),
+            _buildServicesList(context),
             SliverToBoxAdapter(child: _buildCtaBanner(context)),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
@@ -34,12 +36,12 @@ class HomeScreen extends StatelessWidget {
     return SliverAppBar(
       floating: true,
       snap: true,
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppTheme.borderColor),
+        child: Container(height: 1, color: Theme.of(context).dividerTheme.color!),
       ),
       title: Row(
         children: [
@@ -54,31 +56,47 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            'Bengkel Mouse',
+            'Bengkel Mouse', 
             style: GoogleFonts.outfit(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textColor,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
       ),
       actions: [
+        Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return IconButton(
+              onPressed: () => themeProvider.toggleTheme(),
+              icon: Icon(
+                themeProvider.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
+              ),
+            );
+          },
+        ),
         IconButton(
           onPressed: () {},
-          icon: const Icon(Icons.notifications_outlined, color: AppTheme.textMuted),
+          icon: Icon(Icons.notifications_outlined, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
         ),
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            radius: 17,
-            backgroundColor: AppTheme.surfaceHighColor,
-            child: Text(
-              'N',
-              style: GoogleFonts.outfit(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primaryColor,
+        InkWell(
+          onTap: () => context.push('/profile'),
+          customBorder: const CircleBorder(),
+          child: Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.all(4),
+            child: CircleAvatar(
+              radius: 17,
+              backgroundColor: (Theme.of(context).brightness == Brightness.dark ? AppTheme.surfaceHighColor : AppTheme.surfaceHighColorLight),
+              child: Text(
+                'N',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ),
           ),
@@ -93,8 +111,8 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
-        color: AppTheme.surfaceColor,
+        border: Border.all(color: Theme.of(context).dividerTheme.color!),
+        color: Theme.of(context).colorScheme.surface,
         image: const DecorationImage(
           image: NetworkImage('https://bengkelmouse.duaenam.id/images/logo.jpg'),
           alignment: Alignment.centerRight,
@@ -135,7 +153,7 @@ class HomeScreen extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: 32,
               fontWeight: FontWeight.w800,
-              color: AppTheme.textColor,
+              color: Theme.of(context).colorScheme.onSurface,
               height: 1.1,
               letterSpacing: -1.0,
             ),
@@ -145,7 +163,7 @@ class HomeScreen extends StatelessWidget {
             'Servis & modifikasi mouse gaming\nby 26 Computer — Jakarta.',
             style: GoogleFonts.outfit(
               fontSize: 14,
-              color: AppTheme.textMuted,
+              color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight),
               height: 1.6,
             ),
           ),
@@ -184,29 +202,29 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStats() {
+  Widget _buildStats(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
         children: [
-          _statCard('500+', 'Mouse Diservice'),
+          _statCard(context, '500+', 'Mouse Diservice'),
           const SizedBox(width: 12),
-          _statCard('4.9★', 'Rating Pelanggan'),
+          _statCard(context, '4.9★', 'Rating Pelanggan'),
           const SizedBox(width: 12),
-          _statCard('1–3hr', 'Estimasi Servis'),
+          _statCard(context, '1–3hr', 'Estimasi Servis'),
         ],
       ),
     );
   }
 
-  Widget _statCard(String val, String label) {
+  Widget _statCard(BuildContext context, String val, String label) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
+          border: Border.all(color: Theme.of(context).dividerTheme.color!),
         ),
         child: Column(
           children: [
@@ -222,7 +240,7 @@ class HomeScreen extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(fontSize: 10, color: AppTheme.textMuted),
+              style: GoogleFonts.outfit(fontSize: 10, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
             ),
           ],
         ),
@@ -240,7 +258,7 @@ class HomeScreen extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textColor,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const Spacer(),
@@ -253,7 +271,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  SliverList _buildServicesList() {
+  SliverList _buildServicesList(BuildContext context) {
     final services = [
       _ServiceItem('Ganti Switch', 'Double click? Kami ganti switch dengan yang baru.', 'Mulai Rp 80.000', Icons.mouse_outlined),
       _ServiceItem('Deep Cleaning', 'Bersihkan sensor, scroll, dan bagian dalam mouse.', 'Mulai Rp 50.000', Icons.cleaning_services_outlined),
@@ -266,20 +284,20 @@ class HomeScreen extends StatelessWidget {
       delegate: SliverChildBuilderDelegate(
         (ctx, i) => Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          child: _buildServiceCard(services[i]),
+          child: _buildServiceCard(context, services[i]),
         ),
         childCount: services.length,
       ),
     );
   }
 
-  Widget _buildServiceCard(_ServiceItem s) {
+  Widget _buildServiceCard(BuildContext context, _ServiceItem s) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerTheme.color!),
       ),
       child: Row(
         children: [
@@ -303,13 +321,13 @@ class HomeScreen extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textColor,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   s.description,
-                  style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textMuted),
+                  style: GoogleFonts.outfit(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -380,13 +398,16 @@ class HomeScreen extends StatelessWidget {
   Widget _buildBottomNav(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        border: const Border(top: BorderSide(color: AppTheme.borderColor, width: 1)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerTheme.color!, width: 1)),
       ),
       child: BottomNavigationBar(
         currentIndex: 0,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppTheme.primaryColor,
+        unselectedItemColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.textMuted : AppTheme.textMutedLight,
         selectedLabelStyle: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w600),
         unselectedLabelStyle: GoogleFonts.outfit(fontSize: 11),
         items: const [
@@ -398,6 +419,7 @@ class HomeScreen extends StatelessWidget {
         onTap: (i) {
           if (i == 1) context.push('/orders');
           if (i == 2) context.push('/booking');
+          if (i == 3) context.push('/profile');
         },
       ),
     );
