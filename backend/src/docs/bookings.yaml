@@ -1,0 +1,240 @@
+paths:
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Buat booking servis baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mouseName, issue]
+              properties:
+                mouseName:
+                  type: string
+                  example: Logitech G102
+                issue:
+                  type: string
+                  example: Double Clicking
+                details:
+                  type: string
+                  example: Klik kiri sering double sendiri
+      responses:
+        "201":
+          description: Booking berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+    get:
+      tags: [Bookings]
+      summary: Get semua booking (Admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List semua booking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/Booking"
+                    - type: object
+                      properties:
+                        user:
+                          type: object
+                          properties:
+                            name: { type: string }
+                            email: { type: string }
+                            phone: { type: string }
+        "403":
+          description: Akses ditolak, hanya admin
+
+  /bookings/my:
+    get:
+      tags: [Bookings]
+      summary: Get booking milik user yang sedang login
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List booking user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      tags: [Bookings]
+      summary: Get detail booking by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      responses:
+        "200":
+          description: Detail booking
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Booking"
+                  - type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name: { type: string }
+                          email: { type: string }
+                          phone: { type: string }
+                      parts:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/BookingPart"
+        "403":
+          description: Akses ditolak
+        "404":
+          description: Booking tidak ditemukan
+
+  /bookings/{id}/status:
+    put:
+      tags: [Bookings]
+      summary: Update status booking (Admin only, sequential)
+      description: |
+        Status hanya bisa maju satu langkah sesuai flow berikut:
+        **PENDING → CHECKING → WAITING_PAYMENT → PAYMENT_REVIEW → IN_PROGRESS → TESTING → COMPLETED**
+        
+        Tidak bisa lompat atau mundur.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [CHECKING, WAITING_PAYMENT, PAYMENT_REVIEW, IN_PROGRESS, TESTING, COMPLETED]
+                  example: CHECKING
+      responses:
+        "200":
+          description: Status berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Transisi status tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Akses ditolak, hanya admin
+
+  /bookings/{id}/amount:
+    put:
+      tags: [Bookings]
+      summary: Set harga perbaikan (Admin only)
+      description: |
+        Menetapkan total biaya perbaikan. Akan otomatis:
+        - Generate kode unik transfer (1-999)
+        - Mengubah status booking ke **WAITING_PAYMENT**
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [totalAmount]
+              properties:
+                totalAmount:
+                  type: number
+                  example: 75000
+      responses:
+        "200":
+          description: Harga berhasil di-set, status pindah ke WAITING_PAYMENT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "403":
+          description: Akses ditolak, hanya admin
+
+  /bookings/{id}/payment:
+    post:
+      tags: [Bookings]
+      summary: Upload bukti pembayaran
+      description: |
+        User mengupload foto struk transfer. Setelah upload:
+        - `paymentStatus` otomatis jadi **PAID**
+        - `status` otomatis jadi **PAYMENT_REVIEW**
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [paymentProof]
+              properties:
+                paymentProof:
+                  type: string
+                  format: binary
+                  description: File foto bukti transfer
+      responses:
+        "200":
+          description: Bukti pembayaran berhasil diupload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Payment proof uploaded
+                  booking:
+                    $ref: "#/components/schemas/Booking"
+        "400":
+          description: File tidak ada
