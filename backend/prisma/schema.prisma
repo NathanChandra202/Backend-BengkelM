@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String?
+  googleId        String?   @unique
+  avatarUrl       String?
+  phone           String?
+  address         String?
+  role            Role      @default(USER)
+  resetCode       String?
+  resetCodeExpiry DateTime?
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Stock {
+  id        String   @id @default(uuid())
+  name      String
+  category  String
+  quantity  Int
+  price     Float
+  bookingParts BookingPart[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  mouseName       String
+  issue           String
+  details         String?
+  status          BookingStatus @default(PENDING)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paymentProofUrl String?
+  totalAmount     Float?
+  uniqueCode      Int?
+  parts           BookingPart[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model BookingPart {
+  id        String   @id @default(uuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  stockId   String
+  stock     Stock    @relation(fields: [stockId], references: [id])
+  quantity  Int
+  priceEach Float
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CHECKING
+  WAITING_PAYMENT
+  PAYMENT_REVIEW
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
