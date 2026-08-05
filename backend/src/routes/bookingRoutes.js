@@ -14,6 +14,10 @@ const {
   addBookingPart,
   removeBookingPart,
 } = require('../controllers/bookingPartController');
+const {
+  createReview,
+  getReviewByBooking,
+} = require('../controllers/reviewController');
 const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -30,5 +34,9 @@ router.post('/:id/payment', authMiddleware, uploadMiddleware, uploadPaymentProof
 router.get('/:id/parts', authMiddleware, adminMiddleware, getBookingParts);
 router.post('/:id/parts', authMiddleware, adminMiddleware, addBookingPart);
 router.delete('/:id/parts/:partId', authMiddleware, adminMiddleware, removeBookingPart);
+
+// Review routes
+router.post('/:id/review', authMiddleware, createReview);
+router.get('/:id/review', authMiddleware, getReviewByBooking);
 
 module.exports = router;
