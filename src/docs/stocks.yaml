@@ -1,0 +1,119 @@
+paths:
+  /stocks:
+    get:
+      tags: [Stocks]
+      summary: Get semua stok
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List semua stok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Stock"
+
+    post:
+      tags: [Stocks]
+      summary: Tambah stok baru (Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, category, quantity, price]
+              properties:
+                name:
+                  type: string
+                  example: Switch Omron 10M
+                category:
+                  type: string
+                  example: Switch
+                quantity:
+                  type: integer
+                  example: 50
+                price:
+                  type: number
+                  example: 15000
+      responses:
+        "201":
+          description: Stok berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stock"
+        "403":
+          description: Akses ditolak, hanya admin
+
+  /stocks/{id}:
+    put:
+      tags: [Stocks]
+      summary: Update stok (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID stok
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Switch Omron 20M
+                category:
+                  type: string
+                  example: Switch
+                quantity:
+                  type: integer
+                  example: 30
+                price:
+                  type: number
+                  example: 18000
+      responses:
+        "200":
+          description: Stok berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stock"
+        "403":
+          description: Akses ditolak, hanya admin
+
+    delete:
+      tags: [Stocks]
+      summary: Hapus stok (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID stok
+      responses:
+        "200":
+          description: Stok berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Stock deleted successfully
+        "403":
+          description: Akses ditolak, hanya admin

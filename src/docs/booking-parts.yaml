@@ -1,0 +1,114 @@
+paths:
+  /bookings/{id}/parts:
+    get:
+      tags: [Booking Parts]
+      summary: Get semua sparepart di booking ini (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      responses:
+        "200":
+          description: List sparepart yang digunakan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingPart"
+        "403":
+          description: Akses ditolak, hanya admin
+
+    post:
+      tags: [Booking Parts]
+      summary: Tambah sparepart ke booking (Admin only)
+      description: |
+        Menambahkan sparepart ke booking. Otomatis:
+        - Stok barang berkurang sesuai quantity
+        - `totalAmount` booking dikalkulasi ulang dari semua parts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stockId, quantity]
+              properties:
+                stockId:
+                  type: string
+                  description: ID stok yang akan digunakan
+                  example: uuid-stock-here
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 2
+      responses:
+        "201":
+          description: Sparepart berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingPart"
+        "400":
+          description: Stok tidak cukup atau input tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Akses ditolak, hanya admin
+        "404":
+          description: Booking atau stok tidak ditemukan
+
+  /bookings/{id}/parts/{partId}:
+    delete:
+      tags: [Booking Parts]
+      summary: Hapus sparepart dari booking (Admin only)
+      description: |
+        Menghapus sparepart dari booking. Otomatis:
+        - Stok barang dikembalikan sesuai quantity
+        - `totalAmount` booking dikalkulasi ulang
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID booking
+        - in: path
+          name: partId
+          required: true
+          schema:
+            type: string
+          description: ID booking part
+      responses:
+        "200":
+          description: Sparepart dihapus dan stok dikembalikan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Sparepart dihapus dan stok dikembalikan
+        "403":
+          description: Akses ditolak, hanya admin
+        "404":
+          description: Sparepart tidak ditemukan
