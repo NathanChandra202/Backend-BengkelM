@@ -9,6 +9,19 @@ exports.getAllStocks = async (req, res) => {
   }
 };
 
+exports.getCategories = async (req, res) => {
+  try {
+    const categories = await prisma.stock.findMany({
+      distinct: ['category'],
+      select: { category: true },
+      orderBy: { category: 'asc' }
+    });
+    res.json(categories.map(c => c.category));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+};
+
 exports.createStock = async (req, res) => {
   try {
     const { name, category, quantity, price } = req.body;
