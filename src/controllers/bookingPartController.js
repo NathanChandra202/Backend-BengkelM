@@ -29,6 +29,12 @@ exports.addBookingPart = async (req, res) => {
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) return res.status(404).json({ error: 'Booking tidak ditemukan' });
 
+    // Lock sparepart setelah TESTING selesai (WAITING_SETTLEMENT ke atas)
+    const lockedStatuses = ['WAITING_SETTLEMENT', 'SETTLEMENT_REVIEW', 'COMPLETED'];
+    if (lockedStatuses.includes(booking.status)) {
+      return res.status(400).json({ error: 'Sparepart tidak bisa ditambahkan setelah Testing & QC selesai' });
+    }
+
     // Cek stok tersedia
     const stock = await prisma.stock.findUnique({ where: { id: stockId } });
     if (!stock) return res.status(404).json({ error: 'Stok tidak ditemukan' });

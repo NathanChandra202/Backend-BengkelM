@@ -52,7 +52,7 @@ exports.createBooking = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
-      include: { user: { select: { name: true, email: true, phone: true } } },
+      include: { user: { select: { name: true, email: true, phone: true, address: true } } },
       orderBy: { createdAt: 'desc' }
     });
     res.json(bookings);
@@ -80,7 +80,7 @@ exports.getBookingById = async (req, res) => {
     const booking = await prisma.booking.findUnique({
       where: { id },
       include: {
-        user: { select: { name: true, email: true, phone: true } },
+        user: { select: { name: true, email: true, phone: true, address: true } },
         parts: {
           include: { stock: { select: { id: true, name: true, category: true } } },
           orderBy: { createdAt: 'asc' },
@@ -107,13 +107,15 @@ exports.updateBookingStatus = async (req, res) => {
     const { status } = req.body;
 
     const validTransitions = {
-      'PENDING':         ['CHECKING'],
-      'CHECKING':        ['WAITING_PAYMENT'],
-      'WAITING_PAYMENT': ['PAYMENT_REVIEW'],
-      'PAYMENT_REVIEW':  ['IN_PROGRESS'],
-      'IN_PROGRESS':     ['TESTING'],
-      'TESTING':         ['COMPLETED'],
-      'COMPLETED':       [],
+      'PENDING':             ['CHECKING'],
+      'CHECKING':            ['WAITING_DP'],
+      'WAITING_DP':          ['DP_REVIEW'],
+      'DP_REVIEW':           ['IN_PROGRESS'],
+      'IN_PROGRESS':         ['TESTING'],
+      'TESTING':             ['WAITING_SETTLEMENT'],
+      'WAITING_SETTLEMENT':  ['SETTLEMENT_REVIEW'],
+      'SETTLEMENT_REVIEW':   ['COMPLETED'],
+      'COMPLETED':           [],
     };
 
     const current = await prisma.booking.findUnique({ where: { id }, select: { status: true } });
@@ -136,15 +138,28 @@ exports.setBookingAmount = async (req, res) => {
     const { id } = req.params;
     const { totalAmount } = req.body;
 
+    const current = await prisma.booking.findUnique({ where: { id }, select: { status: true } });
+    if (!current) return res.status(404).json({ error: 'Booking not found' });
+
     // Generate unique 3-digit code (001–999)
     const uniqueCode = Math.floor(Math.random() * 999) + 1;
+
+    // Determine which payment step to advance to
+    let nextStatus;
+    if (current.status === 'CHECKING' || current.status === 'PENDING') {
+      nextStatus = 'WAITING_DP';
+    } else if (current.status === 'TESTING') {
+      nextStatus = 'WAITING_SETTLEMENT';
+    } else {
+      nextStatus = current.status; // keep current if called from other state
+    }
 
     const booking = await prisma.booking.update({
       where: { id },
       data: {
         totalAmount: parseFloat(totalAmount),
         uniqueCode,
-        status: 'WAITING_PAYMENT',
+        status: nextStatus,
       }
     });
     res.json(booking);
@@ -161,6 +176,19 @@ exports.uploadPaymentProof = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    const current = await prisma.booking.findUnique({ where: { id }, select: { status: true } });
+    if (!current) return res.status(404).json({ error: 'Booking not found' });
+
+    // Determine which review state to advance to
+    let nextStatus;
+    if (current.status === 'WAITING_DP') {
+      nextStatus = 'DP_REVIEW';
+    } else if (current.status === 'WAITING_SETTLEMENT') {
+      nextStatus = 'SETTLEMENT_REVIEW';
+    } else {
+      return res.status(400).json({ error: 'Booking tidak dalam status menunggu pembayaran' });
+    }
+
     const paymentProofUrl = `/uploads/${req.file.filename}`;
 
     const booking = await prisma.booking.update({
@@ -168,7 +196,7 @@ exports.uploadPaymentProof = async (req, res) => {
       data: { 
         paymentProofUrl,
         paymentStatus: 'PAID',
-        status: 'PAYMENT_REVIEW',
+        status: nextStatus,
       }
     });
 
