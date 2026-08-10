@@ -45,6 +45,7 @@ model Booking {
   status          BookingStatus @default(PENDING)
   paymentStatus   PaymentStatus @default(UNPAID)
   paymentProofUrl String?
+  settlementProofUrl String?
   totalAmount     Float?
   uniqueCode      Int?
   parts           BookingPart[]

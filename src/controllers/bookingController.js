@@ -179,25 +179,31 @@ exports.uploadPaymentProof = async (req, res) => {
     const current = await prisma.booking.findUnique({ where: { id }, select: { status: true } });
     if (!current) return res.status(404).json({ error: 'Booking not found' });
 
+    const paymentProofUrl = `/uploads/${req.file.filename}`;
+
     // Determine which review state to advance to
     let nextStatus;
+    let updateData;
     if (current.status === 'WAITING_DP') {
       nextStatus = 'DP_REVIEW';
+      updateData = {
+        paymentProofUrl,
+        paymentStatus: 'PAID',
+        status: nextStatus,
+      };
     } else if (current.status === 'WAITING_SETTLEMENT') {
       nextStatus = 'SETTLEMENT_REVIEW';
+      updateData = {
+        settlementProofUrl: paymentProofUrl,
+        status: nextStatus,
+      };
     } else {
       return res.status(400).json({ error: 'Booking tidak dalam status menunggu pembayaran' });
     }
 
-    const paymentProofUrl = `/uploads/${req.file.filename}`;
-
     const booking = await prisma.booking.update({
       where: { id },
-      data: { 
-        paymentProofUrl,
-        paymentStatus: 'PAID',
-        status: nextStatus,
-      }
+      data: updateData
     });
 
     res.json({ message: 'Payment proof uploaded', booking });

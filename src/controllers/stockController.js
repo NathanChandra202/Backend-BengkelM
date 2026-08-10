@@ -54,6 +54,9 @@ exports.deleteStock = async (req, res) => {
     await prisma.stock.delete({ where: { id } });
     res.json({ message: 'Stock deleted successfully' });
   } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Stock tidak dapat dihapus karena sedang digunakan dalam transaksi' });
+    }
     res.status(500).json({ error: 'Failed to delete stock' });
   }
 };
