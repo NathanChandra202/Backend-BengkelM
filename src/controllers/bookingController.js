@@ -146,12 +146,12 @@ exports.setBookingAmount = async (req, res) => {
 
     // Determine which payment step to advance to
     let nextStatus;
-    if (current.status === 'CHECKING' || current.status === 'PENDING') {
+    if (current.status === 'CHECKING') {
       nextStatus = 'WAITING_DP';
     } else if (current.status === 'TESTING') {
       nextStatus = 'WAITING_SETTLEMENT';
     } else {
-      nextStatus = current.status; // keep current if called from other state
+      return res.status(400).json({ error: `Tidak bisa set harga di status ${current.status}. Harus di status CHECKING (untuk DP) atau TESTING (untuk pelunasan).` });
     }
 
     const booking = await prisma.booking.update({
