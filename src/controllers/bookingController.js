@@ -211,3 +211,92 @@ exports.uploadPaymentProof = async (req, res) => {
     res.status(500).json({ error: 'Failed to upload payment proof', details: error.message });
   }
 };
+
+exports.createPublicReservation = async (req, res) => {
+  try {
+    const { name, phone, email, address, mouseName, issue, details } = req.body;
+    if (!name || !phone || !mouseName || !issue) {
+      return res.status(400).json({ error: 'Nama, No. WhatsApp, Nama Mouse, dan Keluhan wajib diisi' });
+    }
+
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const userEmail = email && email.trim() ? email.trim() : `guest_${cleanPhone || Date.now()}@bengkelmouse.id`;
+
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: userEmail },
+          ...(cleanPhone ? [{ phone: cleanPhone }] : []),
+        ]
+      }
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: name.trim(),
+          email: userEmail,
+          phone: cleanPhone || phone,
+          address: address || '',
+          role: 'USER',
+        }
+      });
+    } else {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: name.trim() || user.name,
+          phone: cleanPhone || user.phone,
+          address: address || user.address,
+        }
+      });
+    }
+
+    const booking = await prisma.booking.create({
+      data: {
+        userId: user.id,
+        mouseName,
+        issue,
+        details: details || '',
+        status: 'PENDING',
+        paymentStatus: 'UNPAID',
+      },
+      include: {
+        user: { select: { name: true, phone: true, email: true, address: true } }
+      }
+    });
+
+    res.status(201).json(booking);
+  } catch (error) {
+    console.error('Failed to create public reservation:', error);
+    res.status(500).json({ error: 'Gagal membuat reservasi', details: error.message });
+  }
+};
+
+exports.getPublicBookingById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        mouseName: true,
+        issue: true,
+        details: true,
+        status: true,
+        paymentStatus: true,
+        totalAmount: true,
+        createdAt: true,
+        updatedAt: true,
+        user: { select: { name: true, phone: true } }
+      }
+    });
+
+    if (!booking) return res.status(404).json({ error: 'Reservasi tidak ditemukan' });
+
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ error: 'Gagal memuat reservasi' });
+  }
+};
+

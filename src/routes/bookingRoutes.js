@@ -7,7 +7,9 @@ const {
   updateBookingStatus,
   setBookingAmount,
   uploadPaymentProof, 
-  uploadMiddleware 
+  uploadMiddleware,
+  createPublicReservation,
+  getPublicBookingById
 } = require('../controllers/bookingController');
 const {
   getBookingParts,
@@ -21,6 +23,10 @@ const {
 const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
+
+// Public routes for website reservations & tracking
+router.post('/public', createPublicReservation);
+router.get('/public/:id', getPublicBookingById);
 
 router.post('/', authMiddleware, createBooking);
 router.get('/', authMiddleware, adminMiddleware, getAllBookings);
