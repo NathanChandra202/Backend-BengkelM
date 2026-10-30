@@ -15,6 +15,22 @@ const DoubleClickTest: React.FC = () => {
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedClicks = useRef<boolean>(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Disable scrolling when cursor is inside the card
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (containerRef.current?.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   useEffect(() => {
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -83,7 +99,7 @@ const DoubleClickTest: React.FC = () => {
   };
 
   return (
-    <div className="glass-panel" style={{ position: 'relative' }}>
+    <div ref={containerRef} className="glass-panel" style={{ position: 'relative' }}>
       <h2>Double Click Test</h2>
       <p style={{ opacity: 0.7, fontSize: '0.9rem', marginBottom: '15px' }}>
         {isTesting
@@ -175,9 +191,6 @@ const DoubleClickTest: React.FC = () => {
               </span>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
-
-            <h3 style={{ marginTop: '12px', fontSize: '1.4rem' }}>Hasil Diagnosa Double Click</h3>
-
             <div className={`verdict-box ${doubleClickCount > 0 ? 'verdict-error' : 'verdict-success'}`}>
               <div style={{ fontSize: '2rem' }}>{doubleClickCount > 0 ? '⚠️' : '✅'}</div>
               <div>

@@ -19,6 +19,8 @@ const ButtonTest: React.FC = () => {
   const [clickLog, setClickLog] = useState<LogEntry[]>([]);
   const logIdRef = useRef(0);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
       e.preventDefault();
@@ -36,20 +38,28 @@ const ButtonTest: React.FC = () => {
       e.preventDefault();
     };
 
+    const handleWheel = (e: WheelEvent) => {
+      if (containerRef.current?.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    };
+
     // Attach to the document so side buttons are also caught easily
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 
   return (
-    <div className="glass-panel">
+    <div ref={containerRef} className="glass-panel">
       <h2>Button Test</h2>
       <p style={{ opacity: 0.7, fontSize: '0.9rem', textAlign: 'center' }}>
         Tekan tombol mouse manapun.

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 const ScrollTest: React.FC = () => {
   const [scrollDir, setScrollDir] = useState<'UP' | 'DOWN' | null>(null);
   const [scrollSpeed, setScrollSpeed] = useState(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
