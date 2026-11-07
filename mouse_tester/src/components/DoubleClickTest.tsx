@@ -14,15 +14,50 @@ const DoubleClickTest: React.FC = () => {
   const logIdRef = useRef(0);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedClicks = useRef<boolean>(false);
+  // Track whether cursor/scroll is active to suppress modal
+  const isMovingRef = useRef(false);
+  const isScrollingRef = useRef(false);
+  const moveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingModalRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Disable scrolling when cursor is inside the card
+  // Track cursor movement
+  useEffect(() => {
+    const handleMouseMove = () => {
+      isMovingRef.current = true;
+      if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
+      moveTimeoutRef.current = setTimeout(() => {
+        isMovingRef.current = false;
+        // If modal was pending and now truly idle, show it
+        if (pendingModalRef.current && !isScrollingRef.current) {
+          pendingModalRef.current = false;
+          setIsTesting(false);
+          setShowModal(true);
+        }
+      }, 300);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Track scroll activity
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (containerRef.current?.contains(e.target as Node)) {
         e.preventDefault();
       }
+      isScrollingRef.current = true;
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+        if (pendingModalRef.current && !isMovingRef.current) {
+          pendingModalRef.current = false;
+          setIsTesting(false);
+          setShowModal(true);
+        }
+      }, 300);
     };
 
     window.addEventListener('wheel', handleWheel, { passive: false });
@@ -34,11 +69,14 @@ const DoubleClickTest: React.FC = () => {
   useEffect(() => {
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, []);
 
   const startTest = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    pendingModalRef.current = false;
     setClickCount(0);
     setDoubleClickCount(0);
     setFastestClick(null);
@@ -80,13 +118,20 @@ const DoubleClickTest: React.FC = () => {
 
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
-      setIsTesting(false);
-      setShowModal(true);
+      // Only show modal if cursor isn't moving and not scrolling
+      if (!isMovingRef.current && !isScrollingRef.current) {
+        setIsTesting(false);
+        setShowModal(true);
+      } else {
+        // Defer until truly idle
+        pendingModalRef.current = true;
+      }
     }, 2000);
   };
 
   const reset = () => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    pendingModalRef.current = false;
     setIsTesting(false);
     setShowModal(false);
     setClickCount(0);

@@ -17,9 +17,73 @@ interface LogEntry {
 const ButtonTest: React.FC = () => {
   const [activeButtons, setActiveButtons] = useState<Record<number, boolean>>({});
   const [clickLog, setClickLog] = useState<LogEntry[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [buttonCounts, setButtonCounts] = useState<Record<number, number>>({});
   const logIdRef = useRef(0);
+  const hasStarted = useRef(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMovingRef = useRef(false);
+  const isScrollingRef = useRef(false);
+  const moveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingModalRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track cursor movement
+  useEffect(() => {
+    const handleMouseMove = () => {
+      isMovingRef.current = true;
+      if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
+      moveTimeoutRef.current = setTimeout(() => {
+        isMovingRef.current = false;
+        if (pendingModalRef.current && !isScrollingRef.current) {
+          pendingModalRef.current = false;
+          setShowModal(true);
+        }
+      }, 300);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Track scroll activity
+  useEffect(() => {
+    const handleScrollIdle = () => {
+      isScrollingRef.current = true;
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+        if (pendingModalRef.current && !isMovingRef.current) {
+          pendingModalRef.current = false;
+          setShowModal(true);
+        }
+      }, 300);
+    };
+    window.addEventListener('wheel', handleScrollIdle, { passive: true });
+    return () => window.removeEventListener('wheel', handleScrollIdle);
+  }, []);
+
+  const resetIdleTimer = () => {
+    if (!hasStarted.current) return;
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      if (!isMovingRef.current && !isScrollingRef.current) {
+        setShowModal(true);
+      } else {
+        pendingModalRef.current = true;
+      }
+    }, 3000);
+  };
+
+  const resetAll = () => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    pendingModalRef.current = false;
+    hasStarted.current = false;
+    setClickLog([]);
+    setButtonCounts({});
+    setShowModal(false);
+  };
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -27,6 +91,9 @@ const ButtonTest: React.FC = () => {
       setActiveButtons(prev => ({ ...prev, [e.button]: true }));
       const entry: LogEntry = { id: logIdRef.current++, button: e.button, type: 'down' };
       setClickLog(prev => [entry, ...prev].slice(0, 6));
+      hasStarted.current = true;
+      setButtonCounts(prev => ({ ...prev, [e.button]: (prev[e.button] ?? 0) + 1 }));
+      resetIdleTimer();
     };
 
     const handleMouseUp = (e: MouseEvent) => {
@@ -55,11 +122,14 @@ const ButtonTest: React.FC = () => {
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('wheel', handleWheel);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, []);
 
   return (
-    <div ref={containerRef} className="glass-panel">
+    <div ref={containerRef} className="glass-panel" style={{ position: 'relative' }}>
       <h2>Button Test</h2>
       <p style={{ opacity: 0.7, fontSize: '0.9rem', textAlign: 'center' }}>
         Tekan tombol mouse manapun.
@@ -316,6 +386,53 @@ const ButtonTest: React.FC = () => {
           ))
         )}
       </div>
+
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <button className="btn-primary" style={{ flex: 1 }} onClick={resetAll}>
+          Reset
+        </button>
+      </div>
+
+      {/* Result Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-badge badge-success">Hasil Button Test</span>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <div className="verdict-box verdict-success">
+              <div style={{ fontSize: '2rem' }}>🖱️</div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-highlight)' }}>
+                  Semua tombol terekam
+                </h4>
+                <p style={{ margin: '6px 0 0', fontSize: '0.85rem', opacity: 0.85 }}>
+                  Berikut jumlah klik per tombol selama sesi ini.
+                </p>
+              </div>
+            </div>
+
+            <div className="stats-row" style={{ margin: '20px 0' }}>
+              {Object.entries(buttonCounts).map(([btn, count]) => (
+                <div className="stat-box" key={btn}>
+                  <span className="stat-label">{BUTTON_NAMES[Number(btn)] ?? `Button ${btn}`}</span>
+                  <span className="stat-value">{count}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={() => { resetAll(); }}>
+                Reset & Uji Lagi
+              </button>
+              <button className="btn-primary" style={{ background: 'rgba(255,255,255,0.05)', color: '#fff' }} onClick={() => setShowModal(false)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
